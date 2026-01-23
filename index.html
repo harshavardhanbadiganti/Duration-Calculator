@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="uma1.jpeg">
+    <title>Duration Calculator</title>
+    <style>
+        /* General App Styling */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        img {
+            margin-bottom: 10px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            border-radius: 50%;
+            border: 2px solid #000000;
+            width: 120px;
+            height: 120px;
+        }
+        h1 {
+            text-align: center;
+            color: #000000;
+            font-size: 25px;
+        }
+        h2 {
+            text-align: center;
+            color: #000000;
+            margin-bottom: -10px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .card {
+            background: rgb(101, 123, 243);
+            padding: 20px;
+            border-radius: 20px;
+            border: #0c0c0c 2px solid;
+            box-shadow: 0 2px 10px rgba(235, 21, 21, 0.1);
+        }
+        label {
+            font-weight: bold;
+            font-size: 20px;
+            display: block;
+            margin-top: 15px;
+        }
+        input[type="datetime-local"] {
+            width: 100%;
+            padding: 12px;
+            margin-top: 5px;
+            border: 1px solid #000000;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box; 
+        }
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-left: 5px solid #4caf50;
+            border-radius: 4px;
+            display: none; /* Hidden by default */
+        }
+        .result-text {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        button {
+            padding: 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        /* Shared style for top row buttons */
+        .btn-calc, .btn-reset {
+            flex: 1; /* Share width equally */
+        }
+
+        .btn-calc {
+            background-color: #1fff3d;
+            color: rgb(0, 0, 0);
+            font-weight: bold;
+            width: 100%;
+            margin-top: 15px;
+            border: #000000 1px solid; 
+        }
+        
+        .btn-reset {
+            background-color: #ff3720; /* Red */
+            color: rgb(0, 0, 0);
+            font-weight: bold;
+            width: 50%;
+            border: #000000 1px solid;
+        }
+
+        /* CHANGED: Print button specific styles for new line */
+        .btn-print {
+            background-color: #d9ff00;
+            color: rgb(0, 0, 0);
+            font-weight: bold; 
+            width: 50%;
+            border: #000000 1px solid;
+        }
+        button:hover { opacity: 0.8; }
+
+        /* PRINT STYLING: This runs only when printing */
+        @media print {
+            body { 
+                background-color: rgb(255, 255, 255); 
+                padding: 0;
+            }
+            .card {
+                box-shadow: none;
+                border: 1px solid #000;
+            }
+            /* Hide inputs and buttons when printing */
+            input, button, label {
+                display: none; 
+            }
+            /* Show a custom print header */
+            .print-header {
+                display: block !important;
+                text-align: center;
+                margin-bottom: 20px;
+                font-size: 24px;
+                font-weight: bold;
+                border-bottom: 2px solid #000;
+                padding-bottom: 10px;
+            }
+            /* Force the result box to be visible and styled for paper */
+            .result-box {
+                display: block !important;
+                background-color: white;
+                border: none;
+                padding: 0;
+            }
+            .print-row {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 10px;
+                font-size: 18px;
+                border-bottom: 1px dotted #ccc;
+                padding: 5px 0;
+            }
+        }
+
+        /* Helper to hide print header on screen */
+        .print-header, .print-row {
+            display: none;
+        }
+        #printContainer {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <img src="uma1.jpeg" alt="Umamahesh">
+        <h2>Umamahesh's </h2>
+        <h1>⏱ Duration Calculator ⏱</h1>
+
+        <div class="print-header">REPORT</div>
+        <div id="printContainer"></div>
+
+        <label for="startTime">From Date & Time:</label>
+        <input type="datetime-local" id="startTime">
+
+        <label for="endTime">To Date & Time:</label>
+        <input type="datetime-local" id="endTime">
+
+        <div id="screenResult" class="result-box">
+            <div style="font-weight: bold; font-size: 20px;">Duration:</div>
+            <div class="result-text" id="durationText">--</div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-reset" onclick="resetFields()">Reset</button>
+            <button class="btn-print" onclick="window.print()">Print Report</button>
+        </div>
+        <button class="btn-calc" onclick="calculateDuration()">Calculate</button>
+        
+    </div>
+
+    <script>
+        function calculateDuration() {
+            const startInput = document.getElementById('startTime').value;
+            const endInput = document.getElementById('endTime').value;
+            const screenResult = document.getElementById('screenResult');
+            const durationText = document.getElementById('durationText');
+            const printContainer = document.getElementById('printContainer');
+
+            // 1. Validation
+            if (!startInput || !endInput) {
+                alert("Please select both start and end dates.");
+                return;
+            }
+
+            const startDate = new Date(startInput);
+            const endDate = new Date(endInput);
+
+            if (endDate < startDate) {
+                alert("Error: 'To Date' cannot be before 'From Date'.");
+                screenResult.style.display = 'none';
+                return;
+            }
+
+            // 2. Calculation
+            const diffMs = endDate - startDate;
+            
+            // Calculate components
+            const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+            // Format Output String
+            let outputStr = "";
+            if (days > 0) outputStr += `${days} Days, `;
+            outputStr += `${hours} Hours, ${minutes} Minutes`;
+
+            // 3. Update Screen Display
+            durationText.innerText = outputStr;
+            screenResult.style.display = 'block';
+            
+            // 4. Update Hidden Print Container
+            const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            const startStr = startDate.toLocaleDateString('en-US', options);
+            const endStr = endDate.toLocaleDateString('en-US', options);
+            
+            printContainer.innerHTML = `
+                <div class="print-row"><strong>From:</strong> <span>${startStr}</span></div>
+                <div class="print-row"><strong>To:</strong> <span>${endStr}</span></div>
+                <div class="print-row" style="margin-top:20px; border:none;"><strong>Total Duration:</strong></div>
+                <div class="print-row" style="font-size: 24px; font-weight:bold; border:none;">${outputStr}</div>
+            `;
+        }
+
+        //Reset Function
+        function resetFields() {
+            // Clear the inputs
+            document.getElementById('startTime').value = '';
+            document.getElementById('endTime').value = '';
+            
+            // Hide the screen result box
+            document.getElementById('screenResult').style.display = 'none';
+            document.getElementById('durationText').innerText = '--';
+            
+            // Clear the hidden print container
+            document.getElementById('printContainer').innerHTML = '';
+        }
+    </script>
+</body>
+</html>
